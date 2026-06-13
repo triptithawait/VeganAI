@@ -7,6 +7,10 @@ import brain
 import uvicorn
 import os
 from datetime import datetime
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 app = FastAPI()
 
@@ -134,7 +138,9 @@ async def scan_ingredients(file: UploadFile = File(...)):
 
 @app.post("/login")
 async def login_user(username: str = Form(...), password: str = Form(...)):
-    if username == "admin" and password == "1234":
+    admin_user = os.getenv("ADMIN_USERNAME", "admin")
+    admin_pass = os.getenv("ADMIN_PASSWORD", "1234")
+    if username == admin_user and password == admin_pass:
         return {"status": "success"}
     raise HTTPException(status_code=401, detail="Invalid Credentials")
 

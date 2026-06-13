@@ -1,9 +1,13 @@
 import google.generativeai as genai
 import os
+from dotenv import load_dotenv
 
-# Use the same key from your brain.py
-os.environ["GOOGLE_API_KEY"] = "AIzaSyCHi0CVuUgL31PUbomCni5DeTEpNy_uGC0" # Paste your full key here
-genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
+# Load environment variables
+load_dotenv()
+
+# Use the key from env
+google_key = os.getenv("GOOGLE_API_KEY")
+genai.configure(api_key=google_key)
 
 print("--- Checking Available Models ---")
 try:

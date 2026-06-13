@@ -1,10 +1,15 @@
 import base64
 from google import genai
 from groq import Groq
+from dotenv import load_dotenv
+import os
+
+# Load environment variables
+load_dotenv()
 
 # API KEYS
-GOOGLE_API_KEY = "AIzaSyCHi0CVuUgL31PUbomCni5DeTEpNy_uGC0" 
-GROQ_API_KEY = "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" # Replace with your actual Groq key
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 # Clients
 google_client = genai.Client(api_key=GOOGLE_API_KEY)

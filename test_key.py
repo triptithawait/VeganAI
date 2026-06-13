@@ -1,8 +1,13 @@
 from google import genai
 import sys
+import os
+from dotenv import load_dotenv
 
-# PASTE YOUR KEY HERE
-MY_KEY = "AIzaSyCHi0CVuUgL31PUbomCni5DeTEpNy_uGC0" 
+# Load environment variables
+load_dotenv()
+
+# Load key from environment
+MY_KEY = os.getenv("GOOGLE_API_KEY")
 
 client = genai.Client(api_key=MY_KEY)
 

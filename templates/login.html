@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VeganAI | Welcome</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Manrope:wght@700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary: #77dc7a;
+            --primary-container: #00330a;
+            --surface: #0b1512;
+            --surface-variant: rgba(44, 55, 51, 0.6);
+            --surface-container-low: #131e1a;
+            --surface-container-high: #212c29;
+            --on-surface: #d9e5e0;
+            --on-surface-variant: #c1c8c2;
+            --outline-variant: rgba(65, 73, 67, 0.15);
+            --glass-bg: rgba(11, 21, 18, 0.7);
+            --glass-blur: blur(20px);
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(rgba(11, 21, 18, 0.75), rgba(11, 21, 18, 0.75)), url('https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&q=80&w=2560');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            color: var(--on-surface);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-family: 'Manrope', sans-serif;
+            font-weight: 800;
+        }
+
+        .hero {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 0 10%;
+            background: transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            display: none;
+        }
+
+        @keyframes bgSlider {
+
+            0%,
+            20% {
+                background-image: url('/static/dish1.png');
+            }
+
+            25%,
+            45% {
+                background-image: url('/static/hero_left.png');
+            }
+
+            50%,
+            70% {
+                background-image: url('/static/dish2.png');
+            }
+
+            75%,
+            95% {
+                background-image: url('/static/hero_right.png');
+            }
+
+            100% {
+                background-image: url('/static/dish1.png');
+            }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 10;
+            max-width: 800px;
+            padding: 50px;
+            background: rgba(11, 21, 18, 0.4);
+            border-radius: 40px;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            animation: fadeIn 1.2s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-size: 6rem;
+            margin: 0;
+            line-height: 1.2;
+            letter-spacing: -3px;
+            background: linear-gradient(135deg, #fff 0%, var(--primary) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 30px;
+        }
+
+        .hero p {
+            font-size: 1.5rem;
+            color: var(--on-surface-variant);
+            margin-top: 0;
+            font-weight: 400;
+            line-height: 1.6;
+        }
+
+        .section {
+            padding: 120px 10%;
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .section-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(11, 21, 18, 0.92), rgba(11, 21, 18, 0.92)), url('/static/collage.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            z-index: -1;
+        }
+
+        h2 {
+            font-size: 3rem;
+            color: var(--on-surface);
+            margin-bottom: 50px;
+            letter-spacing: -1px;
+            position: relative;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 40px;
+        }
+
+        .card {
+            background: rgba(33, 44, 41, 0.4);
+            padding: 48px;
+            border-radius: 32px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            transition: 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .card:hover {
+            transform: translateY(-12px);
+            border-color: var(--primary);
+            background: var(--surface-variant);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .card h3 {
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+
+        .card p {
+            line-height: 1.8;
+            color: var(--on-surface-variant);
+            font-size: 1.1rem;
+        }
+
+        .btn-join {
+            background: linear-gradient(135deg, var(--primary), #4caf50);
+            color: #0b1512;
+            padding: 20px 60px;
+            border-radius: 24px;
+            font-size: 1.25rem;
+            font-weight: 800;
+            border: none;
+            cursor: pointer;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: 0 10px 30px rgba(119, 220, 122, 0.4);
+            font-family: 'Manrope', sans-serif;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-join:hover {
+            transform: scale(1.05) translateY(-5px);
+            box-shadow: 0 30px 60px rgba(119, 220, 122, 0.4);
+        }
+
+        .join-section {
+            text-align: center;
+            padding: 150px 20px;
+            background: linear-gradient(rgba(0, 51, 10, 0.8), rgba(0, 51, 10, 0.8)), url('/static/pattern.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        .stats-highlight {
+            color: var(--primary);
+            font-weight: 700;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="hero">
+        <div class="hero-content">
+            <h1>VeganAI</h1>
+            <p>Empowering your lifestyle with precision plant-based nutrition.</p>
+            <div
+                style="margin-top: 40px; font-style: italic; opacity: 1; color: var(--primary); border-left: 3px solid var(--primary); padding-left: 20px;">
+                "Why a Vegan Diet? For your heart, for the planet, and for the future of ethical living."
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-bg"></div>
+        <h2> Why Choose Us?</h2>
+        <div class="card">
+            <p>
+                Backed by <span class="stats-highlight">Indian Medical Research (ICMR)</span>, plant-based diets are
+                proven to significantly reduce the risk of non-communicable diseases.
+                According to recent Indian medical science data, a well-planned vegan diet contributes to a 25% lower
+                risk of cardiovascular issues and helps in effectively managing Type-2 diabetes within the Indian
+                demographic.
+            </p>
+            <p>We combine this scientific foundation with cutting-edge AI to make healthy transitions effortless.</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-bg"></div>
+        <div class="grid">
+            <div class="card">
+                <h3> Our Goal</h3>
+                <p>
+                    At VeganAI, our mission is to eliminate the guesswork from plant-based living. We provide real-time,
+                    personalized nutritional insights that help you stay at your peak physical and mental health while
+                    adhering to your ethical choices.
+                </p>
+            </div>
+            <div class="card">
+                <h3> About Us</h3>
+                <p>
+                    We are a team of tech innovators and nutrition enthusiasts dedicated to building the world's most
+                    intuitive vegan dietitian. Our AI understands your local ingredients, your culture, and your unique
+                    health needs.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="join-section">
+        <h2 style="justify-content: center;">Ready to transform your life?</h2>
+        <p style="margin-bottom: 40px; font-size: 1.1rem; color: #a8dba8;">Join thousands of others in the plant-based
+            revolution today.</p>
+        <a href="/auth" class="btn-join">Join Us & Enter Dashboard</a>
+    </div>
+
+</body>
+
+</html>

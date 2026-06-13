@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VeganAI | Precision Nutrition Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #2e7d32;
+            --primary-light: #4caf50;
+            --sidebar-bg: #0b1512;
+            --accent: #77dc7a;
+            --surface: #f8faf8;
+            --on-surface: #0b1512;
+            --glass: rgba(255, 255, 255, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.5);
+            --sidebar-width: 340px;
+        }
+
+        body {
+            display: flex;
+            margin: 0;
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(rgba(248, 250, 248, 0.85), rgba(248, 250, 248, 0.85)),
+                url('https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&q=80&w=2560');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            min-height: 100vh;
+            color: var(--on-surface);
+        }
+
+        /* Sidebar Styling */
+        #sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--sidebar-bg);
+            color: white;
+            padding: 40px 25px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 15px 0 45px rgba(0, 0, 0, 0.15);
+            z-index: 100;
+            overflow-y: auto;
+            border-right: 1px solid rgba(119, 220, 122, 0.1);
+        }
+
+        #sidebar h3 {
+            font-size: 1.2em;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 12px;
+            margin-top: 0;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #sidebar label {
+            display: block;
+            margin-top: 20px;
+            font-size: 0.75em;
+            color: #a8dba8;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        #sidebar select,
+        #sidebar input[type="number"],
+        #sidebar input[type="range"] {
+            width: 100%;
+            margin-top: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            border-radius: 12px;
+            outline: none;
+            transition: 0.3s;
+            font-size: 0.9em;
+        }
+
+        #sidebar select option {
+            background: #1a2a1a;
+            color: white;
+        }
+
+        #sidebar input:focus,
+        #sidebar select:focus {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--primary-light);
+        }
+
+        .bmi-badge {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 15px;
+            background: linear-gradient(45deg, #1a2a1a, #2d3e2d);
+            border: 1px solid rgba(129, 199, 132, 0.2);
+            text-align: center;
+        }
+
+        .bmi-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .bmi-label {
+            font-size: 0.8em;
+            color: #88b088;
+            margin-top: 5px;
+        }
+
+        /* History Section */
+        #historyList {
+            margin-top: 15px;
+        }
+
+        .history-item {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 14px;
+            cursor: pointer;
+            border-left: 3px solid var(--primary);
+            transition: 0.3s;
+            font-size: 0.85em;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .history-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateX(5px);
+        }
+
+        .history-title {
+            font-weight: 700;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .history-meta {
+            font-size: 0.8em;
+            color: #6d8a6d;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .btn-clear {
+            font-size: 0.7em;
+            color: #ff5252;
+            cursor: pointer;
+            text-decoration: underline;
+            opacity: 0.7;
+        }
+
+        .btn-clear:hover {
+            opacity: 1;
+        }
+
+        /* Main Content */
+        .container {
+            flex-grow: 1;
+            padding: 40px;
+            max-width: 1100px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        h1 {
+            color: var(--primary);
+            margin: 0;
+            font-size: 3em;
+            font-weight: 800;
+            letter-spacing: 0px;
+        }
+
+        .subtitle {
+            color: #556b55;
+            margin-bottom: 40px;
+            font-size: 1.1em;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 12px;
+            background: var(--glass);
+            padding: 10px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
+            margin-bottom: 40px;
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+        }
+
+        #cravingInput {
+            flex-grow: 1;
+            padding: 18px;
+            border: none;
+            background: transparent;
+            font-size: 1.1em;
+            outline: none;
+            color: #1a2a1a;
+        }
+
+        .btn-action {
+            padding: 12px 28px;
+            color: white;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-generate {
+            background: var(--primary);
+            box-shadow: 0 10px 20px rgba(46, 125, 50, 0.2);
+        }
+
+        .btn-generate:hover {
+            background: #1b5e20;
+            transform: translateY(-3px) scale(1.02);
+        }
+
+        .btn-icon {
+            background: #e0e8e0;
+            color: #444;
+            border: 1px solid #d0d8d0;
+        }
+
+        .btn-icon:hover {
+            background: #d0d8d0;
+            transform: rotate(5deg);
+        }
+
+        /* Result Section */
+        #result {
+            background: var(--glass);
+            padding: 40px;
+            border-radius: 30px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
+            display: none;
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        #aiText {
+            line-height: 1.9;
+            color: #2d3e2d;
+            font-size: 1.15em;
+            white-space: pre-wrap;
+            margin-bottom: 30px;
+        }
+
+        /* Ingredient Links Styling */
+        .ingredient-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 2px 10px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9em;
+            margin: 2px;
+            border: 1px solid #c8e6c9;
+            transition: 0.2s;
+        }
+
+        .ingredient-link:hover {
+            background: #c8e6c9;
+            transform: scale(1.05);
+        }
+
+        .ingredient-link::after {
+            content: '🔍';
+            font-size: 0.8em;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-top: 40px;
+            padding-top: 40px;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .chart-card {
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.03);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .yt-button {
+            background: #ff0000;
+            color: white;
+            text-decoration: none;
+            padding: 16px 25px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-weight: 800;
+            margin-top: 20px;
+            transition: 0.3s;
+            box-shadow: 0 10px 20px rgba(255, 0, 0, 0.15);
+        }
+
+        .yt-button:hover {
+            background: #cc0000;
+            transform: translateY(-2px);
+        }
+
+        .macro-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .macro-card {
+            flex: 1;
+            background: #fff;
+            padding: 15px;
+            border-radius: 18px;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.03);
+            border: 1px solid #efefef;
+            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .macro-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-light);
+        }
+
+        .macro-val {
+            font-size: 1.4em;
+            font-weight: 800;
+            color: var(--primary);
+            display: block;
+        }
+
+        .macro-lab {
+            font-size: 0.75em;
+            color: #777;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
+        .kcal-card {
+            background: var(--primary);
+            color: white;
+        }
+
+        .kcal-card .macro-val,
+        .kcal-card .macro-lab {
+            color: white;
+        }
+
+        #loginOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 26, 15, 0.95);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(15px);
+        }
+
+        /* Recommendation Section */
+        .rec-section {
+            margin-top: 40px;
+            margin-bottom: 60px;
+        }
+
+        .rec-title {
+            font-size: 1.8em;
+            font-weight: 800;
+            margin-bottom: 25px;
+            color: var(--on-surface);
+        }
+
+        .rec-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+
+        .rec-card {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            border-radius: 30px;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            border: 1px solid var(--glass-border);
+        }
+
+        .rec-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.12);
+        }
+
+        .rec-img {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            background: #eee;
+        }
+
+        .rec-info {
+            padding: 25px;
+        }
+
+        .rec-name {
+            font-weight: 800;
+            font-size: 1.2em;
+            margin-bottom: 8px;
+        }
+
+        .rec-desc {
+            font-size: 0.9em;
+            color: #667;
+            line-height: 1.5;
+        }
+
+        .rec-tag {
+            display: inline-block;
+            padding: 6px 14px;
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.8em;
+            margin-bottom: 15px;
+        }
+
+        .logo-text {
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: var(--primary);
+            margin: 0;
+            letter-spacing: -2px;
+            background: linear-gradient(135deg, var(--primary), #1b5e20);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+
+<body>
+
+
+
+    <div id="sidebar">
+        <h3> Profile Dashboard</h3>
+        <p id="displayUser" style="color: #666; font-size: 0.8em; margin-bottom: 20px;">Account: admin</p>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 08px;">
+            <div>
+                <label>Height (cm)</label>
+                <input type="number" id="userHeight" value="170" oninput="calculateBMI()">
+            </div>
+            <div>
+                <label>Weight (kg)</label>
+                <input type="number" id="userWeight" value="65" oninput="calculateBMI()">
+            </div>
+        </div>
+
+        <div class="bmi-badge">
+            <div class="bmi-value" id="bmiDisplay">22.5</div>
+            <div class="bmi-label" id="bmiStatus">Normal Weight</div>
+        </div>
+
+        <label>Health Focus:</label>
+        <select id="healthIssue" onchange="updateChartFromUI()">
+            <option value="General">General</option>
+            <option value="Anemia">Anemia</option>
+            <option value="Diabetes">Diabetes</option>
+            <option value="Low BP">Low BP</option>
+            <option value="High BP">High BP</option>
+        </select>
+
+        <label>Daily Goal:</label>
+        <select id="userGoal">
+            <option value="energy">High Energy</option>
+            <option value="iron">Iron Boost</option>
+            <option value="protein">Muscle Build</option>
+            <option value="weight_gain">Weight Gain</option>
+            <option value="fat_loss">Fat Loss</option>
+            <option value="calcium">Calcium Boost</option>
+        </select>
+
+        <label>Activity Intensity</label>
+        <input type="range" min="1" max="5" value="3" id="activityLevel">
+
+        <label>Display Language</label>
+        <select id="languageSelect">
+            <option value="English">English</option>
+            <option value="Hindi">हिंदी (Hindi)</option>
+        </select>
+
+        <div
+            style="margin-top: 25px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; display: flex; justify-content: space-between; align-items: center;">
+            <label style="margin: 0;">Recent Meals</label>
+            <span class="btn-clear" onclick="clearHistory()">Clear All</span>
+        </div>
+        <div id="historyList"></div>
+    </div>
+
+    <div class="container">
+        <h1 class="logo-text">VeganAI</h1>
+        <p class="subtitle">Multimodal Precision Nutrition Assistant</p>
+
+        <div class="input-group">
+            <input type="text" id="cravingInput" placeholder="Enter dish or scan ingredients...">
+            <input type="file" id="imageUpload" accept="image/*" style="display:none"
+                onchange="uploadAndAnalyze(event)">
+            <button onclick="document.getElementById('imageUpload').click()" class="btn-action btn-icon">📷</button>
+            <button id="voiceBtn" onclick="startVoice()" class="btn-action btn-icon">🎤</button>
+            <button onclick="getAdvice()" class="btn-action btn-generate">Generate</button>
+        </div>
+
+        <!-- AI Recommendations Section -->
+        <div class="rec-section">
+            <h2 class="rec-title"> Recommended for You</h2>
+            <div class="rec-grid">
+                <div class="rec-card"
+                    onclick="document.getElementById('cravingInput').value = 'Vegan Poke Bowl'; getAdvice();">
+                    <img src="/static/dish_card1.png" alt="Poke Bowl" class="rec-img">
+                    <div class="rec-info">
+                        <div class="rec-tag">Trending</div>
+                        <div class="rec-name">Vegan Poke Bowl</div>
+                        <div class="rec-desc">Vibrant edamame, seaweed and fresh tofu.</div>
+                    </div>
+                </div>
+                <div class="rec-card"
+                    onclick="document.getElementById('cravingInput').value = 'Basil Pesto Zoodles'; getAdvice();">
+                    <img src="/static/dish_card2.png" alt="Zoodles" class="rec-img">
+                    <div class="rec-info">
+                        <div class="rec-tag">Low Carb</div>
+                        <div class="rec-name">Basil Pesto Zoodles</div>
+                        <div class="rec-desc">Light zucchini noodles with organic basil.</div>
+                    </div>
+                </div>
+                <div class="rec-card"
+                    onclick="document.getElementById('cravingInput').value = 'Creamy Lentil Curry'; getAdvice();">
+                    <img src="/static/dish_card3.png" alt="Lentil Curry" class="rec-img">
+                    <div class="rec-info">
+                        <div class="rec-tag">High Protein</div>
+                        <div class="rec-name">Creamy Lentil Curry</div>
+                        <div class="rec-desc">Nutrient-dense with artisanal bread.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="result">
+            <img id="meal-image" src=""
+                style="width:100%; height: 350px; object-fit: cover; border-radius:20px; display:none; margin-bottom:30px; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
+            <div id="aiText">Analyzing nutrition data...</div>
+
+            <div class="macro-row">
+                <div class="macro-card kcal-card">
+                    <span class="macro-val" id="stat-kcal">--</span>
+                    <span class="macro-lab">Calories</span>
+                </div>
+                <div class="macro-card">
+                    <span class="macro-val" id="stat-protein">--</span>
+                    <span class="macro-lab">Protein (g)</span>
+                </div>
+                <div class="macro-card">
+                    <span class="macro-val" id="stat-carbs">--</span>
+                    <span class="macro-lab">Carbs (g)</span>
+                </div>
+                <div class="macro-card">
+                    <span class="macro-val" id="stat-fats">--</span>
+                    <span class="macro-lab">Fats (g)</span>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="chart-card">
+                    <div style="height: 180px; width: 100%;">
+                        <canvas id="nutrientChart"></canvas>
+                    </div>
+                    <p id="chartLabel"
+                        style="font-size: 0.75em; color: #777; margin-top: 15px; font-weight: 700; text-transform: uppercase;">
+                        Macros</p>
+                </div>
+                <div class="chart-card">
+                    <div style="height: 180px; width: 100%;">
+                        <canvas id="microChart"></canvas>
+                    </div>
+                    <p id="microLabel"
+                        style="font-size: 0.75em; color: #777; margin-top: 15px; font-weight: 700; text-transform: uppercase;">
+                        Fiber / Sugar / Sodium</p>
+                </div>
+                <div style="display: flex; flex-direction: column; justify-content: space-between;">
+                    <div id="ytLinkContainer"></div>
+                    <button onclick="exportPrecisionPDF()" class="btn-action"
+                        style="background: var(--sidebar-bg); width: 100%; margin-top: 10px;">
+                        📄 Download Nutrition PDF
+                    </button>
+                    <div style="margin-top: 15px; font-size: 0.8em; color: #666; text-align: center;">Ingredients are
+                        linked to sources 🔍</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let myChart = null;
+
+        function handleLogin() {
+            // Always allow entering the dashboard even if background stats fail
+            try {
+                document.getElementById('loginOverlay').style.display = 'none';
+                calculateBMI();
+                loadHistory();
+            } catch (e) {
+                console.error("Login Post-Process Error:", e);
+                document.getElementById('loginOverlay').style.display = 'none';
+            }
+        }
+
+        function calculateBMI() {
+            const h = parseFloat(document.getElementById('userHeight').value) / 100;
+            const w = parseFloat(document.getElementById('userWeight').value);
+            const display = document.getElementById('bmiDisplay');
+            const status = document.getElementById('bmiStatus');
+
+            if (h > 0 && w > 0) {
+                const bmi = w / (h * h);
+                display.innerText = bmi.toFixed(1);
+                if (bmi < 18.5) { status.innerText = "Underweight"; status.style.color = "#ffeb3b"; }
+                else if (bmi < 25) { status.innerText = "Healthy Weight"; status.style.color = "#81c784"; }
+                else if (bmi < 30) { status.innerText = "Overweight"; status.style.color = "#ff9800"; }
+                else { status.innerText = "Obese"; status.style.color = "#f44336"; }
+                return bmi;
+            }
+            return 0;
+        }
+
+        async function uploadAndAnalyze(event) {
+            const file = event.target.files[0];
+            const formData = new FormData();
+            formData.append("file", file);
+            document.getElementById('cravingInput').value = "Scanning image...";
+
+            try {
+                const resp = await fetch('/scan-ingredients/', { method: 'POST', body: formData });
+                const data = await resp.json();
+                const dish = data.analysis.match(/DISHTAG: (.*)/)?.[1] || "Vegan Dish";
+                document.getElementById('cravingInput').value = dish;
+                getAdvice();
+            } catch (e) { document.getElementById('cravingInput').value = "Error scanning image."; }
+        }
+
+        async function loadHistory() {
+            try {
+                const resp = await fetch('/get-history/');
+                if (!resp.ok) return;
+                const history = await resp.json();
+                const container = document.getElementById('historyList');
+
+                if (Array.isArray(history) && history.length > 0) {
+                    container.innerHTML = history.map(item => {
+                        const date = item.timestamp ? new Date(item.timestamp + "Z").toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Recent";
+                        return `
+                            <div class="history-item" onclick="restoreRecipe(\`${item.craving}\`, \`${(item.result || "").replace(/`/g, '\\`').replace(/\n/g, '\\n')}\`)">
+                                <div class="history-title">🍴 ${item.craving}</div>
+                                <div class="history-meta">
+                                    <span>Meal Saved</span>
+                                    <span>${date}</span>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    container.innerHTML = `<div style="text-align: center; color: #444; font-size: 0.8em; margin-top: 20px;">No recent meals.</div>`;
+                }
+            } catch (e) { console.error("History error:", e); }
+        }
+
+        async function clearHistory() {
+            if (!confirm("Clear your recent meal history?")) return;
+            try {
+                const resp = await fetch('/clear-history/', { method: 'POST' });
+                if (resp.ok) loadHistory();
+            } catch (e) { console.error("Clear error:", e); }
+        }
+
+        function processRecipeText(text) {
+            return text.replace(/\[(.*?)\]/g, (match, p1) => {
+                return `<a href="https://www.google.com/search?q=${encodeURIComponent(p1)}+vegan+ingredient+nutrition" target="_blank" class="ingredient-link">${p1}</a>`;
+            });
+        }
+
+        function updateMacroBadges(stats) {
+            document.getElementById('stat-kcal').innerText = stats.calories || 0;
+            document.getElementById('stat-protein').innerText = stats.protein_g || 0;
+            document.getElementById('stat-carbs').innerText = stats.carbs_g || 0;
+            document.getElementById('stat-fats').innerText = stats.fats_g || 0;
+        }
+
+        function restoreRecipe(craving, result) {
+            document.getElementById('cravingInput').value = craving;
+
+            // Robust DATA parsing
+            const statsMatch = result.match(/DATA_START\s*({.*?})\s*DATA_END/s);
+            let resultDisplay = result;
+            if (statsMatch) {
+                try {
+                    const stats = JSON.parse(statsMatch[1].replace(/\[calc\]/g, "0")); // Cleanup if AI fails placeholder
+                    const vals = [stats.p_percent || 0, stats.c_percent || 0, stats.f_percent || 0];
+                    const grams = { p: stats.protein_g, c: stats.carbs_g, f: stats.fats_g };
+                    updateChart('Custom', vals, grams);
+                    updateMicroChart(stats);
+                    updateMacroBadges(stats);
+                    document.getElementById('chartLabel').innerText = `Macros (${stats.calories} kcal)`;
+                    resultDisplay = result.replace(statsMatch[0], '').trim();
+                } catch (e) { console.error("JSON parse error:", e); }
+            } else {
+                updateChart(document.getElementById('healthIssue').value);
+            }
+
+            document.getElementById('aiText').innerHTML = processRecipeText(resultDisplay);
+            document.getElementById('result').style.display = 'block';
+
+            // Update YouTube link
+            const query = `Vegan ${craving} recipe`.replace(/ /g, "+");
+            document.getElementById('ytLinkContainer').innerHTML = `
+                <a href="https://www.youtube.com/results?search_query=${query}" target="_blank" class="yt-button">
+                    📺 Watch ${craving} Tutorial
+                </a>`;
+
+            // Re-fetch or show image
+            fetch(`/generate-image/?meal_name=${encodeURIComponent(craving)}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.image_data) {
+                        const img = document.getElementById('meal-image');
+                        img.src = data.image_data;
+                        img.style.display = 'block';
+                    }
+                });
+
+            // Smooth scroll to results
+            document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        async function getAdvice() {
+            const craving = document.getElementById('cravingInput').value;
+            const health = document.getElementById('healthIssue').value;
+            const goal = document.getElementById('userGoal').value;
+            const lang = document.getElementById('languageSelect').value;
+            const height = document.getElementById('userHeight').value;
+            const weight = document.getElementById('userWeight').value;
+            const bmi = calculateBMI();
+
+            document.getElementById('result').style.display = 'block';
+            document.getElementById('aiText').innerText = "Gemini is analyzing nutrition data...";
+            document.getElementById('meal-image').style.display = 'none';
+
+            try {
+                const resp = await fetch('/generate-recipe/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: "Admin", goal: goal, allergies: health,
+                        craving: craving, language: lang,
+                        height: parseFloat(height), weight: parseFloat(weight), bmi: parseFloat(bmi)
+                    })
+                });
+                const data = await resp.json();
+                const aiText = data.ai_recommendation;
+
+                // Robust DATA parsing
+                const statsMatch = aiText.match(/DATA_START\s*({.*?})\s*DATA_END/s);
+                let finalContent = aiText;
+
+                if (statsMatch) {
+                    try {
+                        const stats = JSON.parse(statsMatch[1]);
+                        const vals = [stats.p_percent || 30, stats.c_percent || 40, stats.f_percent || 30];
+                        const grams = { p: stats.protein_g, c: stats.carbs_g, f: stats.fats_g };
+                        updateChart('Predicted', vals, grams);
+                        updateMicroChart(stats);
+                        updateMacroBadges(stats);
+                        document.getElementById('chartLabel').innerText = `Precision Macros (${stats.calories} kcal)`;
+                        finalContent = aiText.replace(statsMatch[0], '').trim();
+                    } catch (e) { console.warn("AI metadata parse failed", e); }
+                } else {
+                    updateChart(health);
+                    document.getElementById('chartLabel').innerText = "Focus Profile";
+                }
+
+                document.getElementById('aiText').innerHTML = processRecipeText(finalContent);
+                loadHistory();
+
+                const query = `Vegan ${craving} recipe for ${health}`.replace(/ /g, "+");
+                document.getElementById('ytLinkContainer').innerHTML = `
+                    <a href="https://www.youtube.com/results?search_query=${query}" target="_blank" class="yt-button">
+                        📺 Watch ${craving} Tutorial
+                    </a>`;
+
+                const imgResp = await fetch(`/generate-image/?meal_name=${encodeURIComponent(craving)}`);
+                const imgData = await imgResp.json();
+                if (imgData.image_data) {
+                    const img = document.getElementById('meal-image');
+                    img.src = imgData.image_data;
+                    img.style.display = 'block';
+                }
+            } catch (err) { document.getElementById('aiText').innerText = "Server error."; }
+        }
+
+        function updateChartFromUI() {
+            if (document.getElementById('result').style.display === 'block') {
+                updateChart(document.getElementById('healthIssue').value);
+            }
+        }
+
+        function updateChart(label, customVals = null, grams = null) {
+            const ctx = document.getElementById('nutrientChart').getContext('2d');
+            if (myChart) myChart.destroy();
+
+            let vals = customVals;
+            if (!vals) {
+                vals = [30, 40, 30]; // Default fallback
+                const issue = label;
+                if (issue === 'Diabetes') vals = [35, 20, 45];
+                if (issue === 'Anemia') vals = [45, 30, 25];
+                if (issue === 'Hypertension') vals = [30, 35, 35];
+            }
+
+            // Enhanced labels with GRAMS if available
+            const displayLabels = grams ? [
+                `Protein: ${grams.p}g (${vals[0]}%)`,
+                `Carbs: ${grams.c}g (${vals[1]}%)`,
+                `Fats: ${grams.f}g (${vals[2]}%)`
+            ] : [
+                `Protein: ${vals[0]}%`,
+                `Carbs: ${vals[1]}%`,
+                `Fats: ${vals[2]}%`
+            ];
+
+            myChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: displayLabels,
+                    datasets: [{
+                        data: vals,
+                        backgroundColor: ['#2e7d32', '#81c784', '#a8dba8'],
+                        hoverOffset: 15,
+                        borderWidth: 0,
+                        borderRadius: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                font: { weight: 'bold', size: 11 },
+                                padding: 20
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0,0,0,0.8)',
+                            padding: 12,
+                            titleFont: { size: 14 },
+                            bodyFont: { size: 14 },
+                            callbacks: {
+                                label: (context) => ` ${context.label}`
+                            }
+                        }
+                    },
+                    cutout: '70%',
+                    animation: { animateRotate: true, duration: 1000 }
+                },
+                plugins: [{
+                    id: 'centerText',
+                    beforeDraw: function (chart) {
+                        const width = chart.width, height = chart.height, ctx = chart.ctx;
+                        ctx.restore();
+                        const fontSize = (height / 200).toFixed(2);
+                        ctx.font = fontSize + "em sans-serif";
+                        ctx.textBaseline = "middle";
+                        ctx.fillStyle = "#2e7d32";
+                        const text = "AI DATA", textX = Math.round((width - ctx.measureText(text).width) / 2), textY = height / 2.3;
+                        ctx.fillText(text, textX, textY);
+                        ctx.save();
+                    }
+                }]
+            });
+        }
+
+        function exportPrecisionPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Header
+            doc.setFillColor(46, 125, 50);
+            doc.rect(0, 0, 210, 40, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(24);
+            doc.text("VeganAI | Precision Nutrition", 20, 25);
+
+            // Macro section on PDF
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(14);
+            const stats = {
+                kcal: document.getElementById('stat-kcal').innerText,
+                p: document.getElementById('stat-protein').innerText,
+                c: document.getElementById('stat-carbs').innerText,
+                f: document.getElementById('stat-fats').innerText
+            };
+
+            doc.text(`CRAVING: ${document.getElementById('cravingInput').value.toUpperCase()}`, 20, 55);
+            doc.text(`Macros: ${stats.kcal} kcal | P: ${stats.p}g | C: ${stats.c}g | F: ${stats.f}g`, 20, 65);
+            doc.line(20, 70, 190, 70);
+
+            // Recipe Text
+            doc.setFontSize(11);
+            const pureText = document.getElementById('aiText').innerText;
+            const wrappedText = doc.splitTextToSize(pureText, 170);
+            doc.text(wrappedText, 20, 80);
+
+            doc.save("VeganAI_Nutrition_Report.pdf");
+        }
+
+        let microChart = null;
+        function updateMicroChart(stats) {
+            const ctx = document.getElementById('microChart').getContext('2d');
+            if (microChart) microChart.destroy();
+
+            microChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Fiber (g)', 'Sugar (g)', 'Sodium (mg/10)'],
+                    datasets: [{
+                        label: 'Value',
+                        data: [stats.fiber_g || 0, stats.sugar_g || 0, (stats.sodium_mg || 0) / 10],
+                        backgroundColor: ['#4caf50', '#81c784', '#a8dba8'],
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, grid: { display: false } }, x: { grid: { display: false } } }
+                }
+            });
+        }
+        function startVoice() {
+            const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            rec.lang = document.getElementById('languageSelect').value === 'Hindi' ? 'hi-IN' : 'en-US';
+            rec.start();
+            rec.onresult = (e) => {
+                document.getElementById('cravingInput').value = e.results[0][0].transcript;
+                getAdvice();
+            };
+        }
+
+        window.onload = () => {
+            calculateBMI();
+            loadHistory();
+        };
+    </script>
+</body>
+
+</html>
